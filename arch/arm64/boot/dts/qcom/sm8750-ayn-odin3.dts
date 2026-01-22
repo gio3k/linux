@@ -21,6 +21,7 @@
 #include "pmk8550.dtsi"
 #include "pmr735d_a.dtsi"
 #include "sm8750-pmics.dtsi"
+#include "sm8750-mdss.dtsi"
 
 / {
 	model = "Ayn Odin 3";
@@ -101,8 +102,9 @@
 
 	pmic-glink {
 		compatible = "qcom,sm8750-pmic-glink",
-					 "qcom,sm8550-pmic-glink",
-					 "qcom,pmic-glink";
+			     "qcom,sm8550-pmic-glink",
+			     "qcom,pmic-glink";
+		
 		#address-cells = <1>;
 		#size-cells = <0>;
 		orientation-gpios = <&tlmm 61 GPIO_ACTIVE_HIGH>;
@@ -150,6 +152,20 @@
 		regulator-max-microvolt = <3600000>;
 
 		regulator-always-on;
+		regulator-boot-on;
+	};
+
+	display_pwr: display-gpio-regulator {
+		compatible = "regulator-fixed";
+
+		regulator-name = "display_panel_avdd";
+		regulator-min-microvolt = <5500000>;
+		regulator-max-microvolt = <5500000>;
+		regulator-enable-ramp-delay = <233>;
+
+		gpio = <&pm8550_gpios 11 GPIO_ACTIVE_HIGH>;
+
+		enable-active-high;
 		regulator-boot-on;
 	};
 };
@@ -687,6 +703,41 @@
 &tlmm {
 	/* reserved for secure world */
 	gpio-reserved-ranges = <36 4>, <74 1>;
+
+	disp0_reset_n_active: disp0-reset-n-active-state {
+		pins = "gpio98";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable = <0>;
+	};
+
+	disp0_reset_n_suspend: disp0-reset-n-suspend-state {
+		pins = "gpio98";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	disp0_mipi_vdd_active: disp0-mipi-vdd-active-state {
+		pins = "gpio97";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable = <0>;
+	};
+
+	disp0_mipi_vdd_suspend: disp0-mipi-vdd-suspend-state {
+		pins = "gpio97";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	disp0_mdp_vsync: disp0-mdp-vsync-active-state {
+		pins = "gpio86";
+		function = "mdp_vsync";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
 };
 
 /* Disabled features */
@@ -790,4 +841,47 @@
 
 	vdd18-supply = <&vreg_l15b_1p8>; // pm-humu-l15
 	vdd3-supply = <&vreg_l5b_3p1>; // pm-humu-l5
+};
+
+/* MDSS */
+&mdss {
+	status = "okay";
+};
+
+&mdss_dsi0 {
+	status = "okay";
+	
+	vdda-supply = <&vreg_l3g_1p2>;
+
+	display_panel: panel@0 {
+		reg = <0>;
+		compatible = "chipone,icna3520";
+		
+		vddio-supply = <&vreg_l12b_1p8>;
+		vci-supply = <&vreg_l13b_3p0>;
+		vdd-supply = <&vreg_l11b_1p0>;
+		
+		rotation = <90>;
+		
+		reset-gpios = <&tlmm 98 GPIO_ACTIVE_HIGH>;
+		pinctrl-0 = <&disp0_reset_n_active>, <&disp0_mipi_vdd_active>, <&disp0_mdp_vsync>;
+		pinctrl-1 = <&disp0_reset_n_suspend>, <&disp0_mipi_vdd_suspend>, <&disp0_mdp_vsync>;
+		pinctrl-names = "default", "sleep";
+
+		port {
+			panel0_in: endpoint {
+				remote-endpoint = <&mdss_dsi0_out>;
+			};
+		};
+	};
+};
+
+&mdss_dsi0_out {
+	remote-endpoint = <&panel0_in>;
+	data-lanes = <0 1 2 3>;
+};
+
+&mdss_dsi0_phy {
+	status = "okay";
+	vdds-supply = <&vreg_l3i_0p88>;
 };
