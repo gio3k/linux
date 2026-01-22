@@ -166,6 +166,7 @@
 		gpio = <&pm8550_gpios 11 GPIO_ACTIVE_HIGH>;
 
 		enable-active-high;
+		regulator-always-on;
 		regulator-boot-on;
 	};
 };
@@ -700,10 +701,43 @@
 	status = "okay";
 };
 
+&qup_i2c4_data_clk {
+	/* Use internal I2C pull-up */
+	bias-pull-up = <2200>;
+};
+
+&i2c4 {
+	status = "okay";
+
+	clock-frequency = <400000>;
+
+	// i2c@a90000 / focaltech@38
+	display_touchscreen: touchscreen@38 {
+		status = "okay";
+		reg = <0x38>;
+		compatible = "focaltech,ft5426";
+
+		no-regmap-bulk-read;
+		
+		interrupts-extended = <&tlmm 162 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&tlmm 161 GPIO_ACTIVE_LOW>;
+
+		vcc-supply = <&vreg_l14b_3p2>;
+		iovcc-supply = <&vreg_l12b_1p8>;
+
+		touchscreen-size-x = <1080>;
+		touchscreen-size-y = <1920>;
+
+		pinctrl-0 = <&ts_reset_default &ts_active_default>;
+		pinctrl-names = "default";
+	};
+};
+
 &tlmm {
 	/* reserved for secure world */
 	gpio-reserved-ranges = <36 4>, <74 1>;
 
+	// Display GPIOs
 	disp0_reset_n_active: disp0-reset-n-active-state {
 		pins = "gpio98";
 		function = "gpio";
@@ -737,6 +771,23 @@
 		function = "mdp_vsync";
 		drive-strength = <2>;
 		bias-pull-down;
+	};
+
+	// Touchscreen GPIOs
+	// pmx_ts_active / ts_active
+	ts_active_default: ts-active-default-state {
+		pins = "gpio162";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-up;
+	};
+
+	// pmx_ts_release / ts_release
+	ts_reset_default: ts-reset-default-state {
+		pins = "gpio161";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-disable;
 	};
 };
 
