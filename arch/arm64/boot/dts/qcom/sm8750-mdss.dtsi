@@ -31,8 +31,8 @@
 			 <&gcc GCC_DISP_HF_AXI_CLK>,
 			 <&dispcc DISP_CC_MDSS_MDP_CLK>;
 
-		// NOTE: This was originally DISP_CC_MDSS_CORE_BCR
-		resets = <&dispcc DISP_CC_MDSS_RSCC_BCR>;
+		// NOTE: Some devices have better luck with RSCC_BCR - we'll stick with CORE_BCR for now
+		resets = <&dispcc DISP_CC_MDSS_CORE_BCR>;
 
 		interconnects = <&mmss_noc MASTER_MDP QCOM_ICC_TAG_ALWAYS
 				 &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ALWAYS>,
@@ -180,7 +180,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			status = "disabled";
+			status = "okay";
 
 			ports {
 				#address-cells = <1>;
@@ -243,7 +243,7 @@
 			#clock-cells = <1>;
 			#phy-cells = <0>;
 
-			status = "disabled";
+			status = "okay";
 		};
 
 		mdss_dsi1: dsi@ae96000 {

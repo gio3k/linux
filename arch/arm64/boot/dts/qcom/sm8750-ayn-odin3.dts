@@ -144,6 +144,59 @@
 		};
 	};
 
+	sdhc2: mmc@8804000 {
+		compatible = "qcom,sm8750-sdhci", "qcom,sdhci-msm-v5";
+		reg = <0 0x08804000 0 0x1000>;
+
+		interrupts = <GIC_SPI 207 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 223 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "hc_irq", "pwr_irq";
+
+		clocks = <&gcc GCC_SDCC2_AHB_CLK>,
+			 <&gcc GCC_SDCC2_APPS_CLK>,
+			 <&rpmhcc RPMH_CXO_CLK>;
+		clock-names = "iface", "core", "xo";
+
+		power-domains = <&rpmhpd RPMHPD_CX>;
+		operating-points-v2 = <&sdhc2_opp_table>;
+
+		interconnects = <&aggre2_noc MASTER_SDCC_2 QCOM_ICC_TAG_ALWAYS
+				 &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ALWAYS>,
+				<&gem_noc MASTER_APPSS_PROC QCOM_ICC_TAG_ACTIVE_ONLY
+				 &config_noc SLAVE_SDCC_2 QCOM_ICC_TAG_ACTIVE_ONLY>;
+		interconnect-names = "sdhc-ddr", "cpu-sdhc";
+
+		iommus = <&apps_smmu 0x540 0>;
+
+		bus-width = <4>;
+
+		dma-coherent;
+
+		sdhc2_opp_table: opp-table {
+			compatible = "operating-points-v2";
+
+			opp-19200000 {
+				opp-hz = /bits/ 64 <19200000>;
+				required-opps = <&rpmhpd_opp_min_svs>;
+			};
+
+			opp-50000000 {
+				opp-hz = /bits/ 64 <50000000>;
+				required-opps = <&rpmhpd_opp_low_svs>;
+			};
+
+			opp-100000000 {
+				opp-hz = /bits/ 64 <100000000>;
+				required-opps = <&rpmhpd_opp_svs>;
+			};
+
+			opp-202000000 {
+				opp-hz = /bits/ 64 <202000000>;
+				required-opps = <&rpmhpd_opp_svs_l1>;
+			};
+		};
+	};
+
 	vph_pwr: vph-pwr-regulator {
 		compatible = "regulator-fixed";
 
@@ -908,15 +961,15 @@
 		reg = <0>;
 		compatible = "chipone,icna3520";
 		
+		reset-gpios = <&tlmm 98 GPIO_ACTIVE_HIGH>;
+
 		vddio-supply = <&vreg_l12b_1p8>;
 		vci-supply = <&vreg_l13b_3p0>;
 		vdd-supply = <&vreg_l11b_1p0>;
-		
 		rotation = <90>;
 		
-		reset-gpios = <&tlmm 98 GPIO_ACTIVE_HIGH>;
-		pinctrl-0 = <&disp0_reset_n_active>, <&disp0_mipi_vdd_active>, <&disp0_mdp_vsync>;
-		pinctrl-1 = <&disp0_reset_n_suspend>, <&disp0_mipi_vdd_suspend>, <&disp0_mdp_vsync>;
+		pinctrl-0 = <&disp0_reset_n_active>, <&disp0_mdp_vsync>;
+		pinctrl-1 = <&disp0_reset_n_suspend>, <&disp0_mdp_vsync>;
 		pinctrl-names = "default", "sleep";
 
 		port {
