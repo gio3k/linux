@@ -233,6 +233,13 @@ static void a8xx_set_cp_protect(struct msm_gpu *gpu)
 		A8XX_CP_PROTECT_CNTL_PIPE_ACCESS_FAULT_ON_VIOL_EN |
 		A8XX_CP_PROTECT_CNTL_PIPE_LAST_SPAN_INF_RANGE |
 		A8XX_CP_PROTECT_CNTL_PIPE_HALT_SQE_RANGE__MASK;
+
+	// HACK(gio, odin 3 related): something is wrong with the register protection on A830
+	// just disable it for now
+	if (adreno_is_a830(adreno_gpu)) {
+		cntl = 0; 
+	}
+
 	/*
 	 * Enable access protection to privileged registers, fault on an access
 	 * protect violation and select the last span to protect from the start
