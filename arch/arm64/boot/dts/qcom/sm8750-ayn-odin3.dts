@@ -22,6 +22,7 @@
 #include "pmr735d_a.dtsi"
 #include "sm8750-pmics.dtsi"
 #include "sm8750-mdss.dtsi"
+#include "sm8750-gpu.dtsi"
 
 / {
 	model = "Ayn Odin 3";
@@ -725,8 +726,8 @@
 	volume_up_n: volume-up-n-state {
 		pins = "gpio6";
 		function = "normal";
-		bias-pull-up;
 		input-enable;
+		bias-pull-up;
 		power-source = <1>;
 	};
 };
@@ -988,4 +989,25 @@
 &mdss_dsi0_phy {
 	status = "okay";
 	vdds-supply = <&vreg_l3i_0p88>;
+};
+
+/* GPU */
+&gpu {
+	status = "okay";
+};
+
+&gmu {
+	status = "okay";
+};
+
+&gpucc {
+	status = "okay";
+};
+
+&gxcc {
+	status = "okay";
+};
+
+&gpu_zap_shader {
+	firmware-name = "gen80000_zap.mbn";
 };
